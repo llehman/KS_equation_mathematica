@@ -1,0 +1,49 @@
+number = 128;
+x = 32.*\[Pi]*Range[number]/number;
+u = Cos[x/16]*(1 + Sin[x/16]);
+v = Fourier[u, FourierParameters -> {1, -1}];
+h = 0.25;(* time step *)
+
+k = Join[Join[Range[0, number/2 - 1], {0}], Range[-number/2 + 1, -1]]/
+   16.;(* wave numbers *)
+L = k^2 - k^4; (* Fourier multipliers *)
+
+EE = Exp[h*L];
+EE2 = Exp[h*L/2];
+M = 16;
+r = Exp[I*\[Pi]*(Range[M] - 0.5)/M];
+LR = h*Transpose[Table[L, M]] + Table[r, number];
+Q = h*Re[Mean[Transpose[(Exp[LR/2] - 1)/LR]]];
+f1 = h*Re[
+    Mean[Transpose[(-4. - LR + Exp[LR]*(4. - 3*LR + LR^2))/LR^3]]]; 
+f2 = h*Re[Mean[Transpose[(2. + LR + Exp[LR]*(-2. + LR))/LR^3]]];
+f3 = h*Re[
+    Mean[Transpose[(-4. - 3*LR - LR^2 + Exp[LR]*(4 - LR))/LR^3]]]; 
+   
+uu = {u}; tt = {0};
+tmax = 150;
+nmax = Round[tmax/h];
+nplt = Floor[(tmax/100)/h]; 
+g = -0.5*I*k;
+For[n = 1, n <= nmax,
+ n++,
+ t = n*h;
+ Nv = g*Fourier[Re[InverseFourier[v, FourierParameters -> {1, -1}]]^2,
+     FourierParameters -> {1, -1}];
+ a = EE2*v + Q*Nv;
+ Na = g*Fourier[Re[InverseFourier[a, FourierParameters -> {1, -1}]]^2,
+     FourierParameters -> {1, -1}];
+ b = EE2*v + Q*Na;
+ Nb = g*Fourier[Re[InverseFourier[b, FourierParameters -> {1, -1}]]^2,
+     FourierParameters -> {1, -1}];
+ c = EE2*a + Q*(2*Nb - Nv);
+ Nc = g*Fourier[Re[InverseFourier[c, FourierParameters -> {1, -1}]]^2,
+     FourierParameters -> {1, -1}];
+ v = EE*v + Nv*f1 + 2 (Na + Nb)*f2 + Nc*f3; 
+ If[Mod[n, nplt] == 0,
+  u = Re[InverseFourier[v, FourierParameters -> {1, -1}]];
+  AppendTo[uu, u];
+  AppendTo[tt, t];, {}]
+ ]
+ 
+ ListPlot3D[uu]
