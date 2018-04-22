@@ -1,0 +1,28 @@
+For[inc = 1, inc <= 10, inc++,
+ blue = RandomReal[MultinormalDistribution[{1, 0}, IdentityMatrix[2]],
+    10];
+ orange = 
+  RandomReal[MultinormalDistribution[{0, 1}, IdentityMatrix[2]], 10];
+ set1 = Table[
+   RandomReal[
+    MultinormalDistribution[Evaluate[RandomChoice[blue]], 
+     IdentityMatrix[2]/5]], 100];
+ set2 = Table[
+   RandomReal[
+    MultinormalDistribution[Evaluate[RandomChoice[orange]], 
+     IdentityMatrix[2]/5]], 100];
+ listplot = 
+  ListPlot[{set1, set2}, PlotRange -> All, AspectRatio -> 1, 
+   PlotStyle -> {PointSize[0.02]}];
+ contourplot = ContourPlot[
+   Sum[PDF[
+      MultinormalDistribution[orange[[ii]], IdentityMatrix[2]/5], {xx,
+        yy}], {ii, 1, 10}] ==
+    Sum[PDF[
+      MultinormalDistribution[blue[[jj]], IdentityMatrix[2]/5], {xx, 
+       yy}], {jj, 1, 10}],
+   {xx, -5, 5}, {yy, -5, 5}, PlotPoints -> 35, Axes -> True, 
+   ContourStyle -> {Red, AbsoluteThickness[2]}];
+ out = Show[contourplot, listplot];
+ Export["~/Desktop/" <> ToString[inc] <> "_test.pdf", out]
+ ]
